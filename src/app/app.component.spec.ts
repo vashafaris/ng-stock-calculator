@@ -1,35 +1,60 @@
-import { TestBed } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  fakeAsync,
+  TestBed,
+  tick,
+} from '@angular/core/testing';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
+  let fixture: ComponentFixture<AppComponent>;
+  let component: AppComponent;
+
+  const formBuilder: FormBuilder = new FormBuilder();
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule
-      ],
-      declarations: [
-        AppComponent
-      ],
+      imports: [RouterTestingModule, ReactiveFormsModule],
+      declarations: [AppComponent],
+      providers: [{ provide: FormBuilder, useValue: formBuilder }],
     }).compileComponents();
   });
 
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+
+    component.form = formBuilder.group({
+      startingBalance: 5000000,
+      monthlyInvestment: 1000000,
+      period: 2,
+    });
+  });
+
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(component).toBeTruthy();
   });
 
-  it(`should have as title 'ng-testing'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('ng-testing');
+  it('should make isSubmitted true', () => {
+    const mockIsSubmitted = false;
+    component.isSubmitted = mockIsSubmitted;
+
+    component.onSubmit();
+
+    expect(component.isSubmitted).toBe(true);
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement;
-    expect(compiled.querySelector('.content span').textContent).toContain('ng-testing app is running!');
+  it('should make expected value 7 mil', () => {
+    component.onSubmit();
+
+    expect(component.expectedValue).toBe(7000000);
   });
+
+  it('should make expected value 7 mil after 500ms', fakeAsync(() => {
+    component.onAsyncSubmit();
+    tick(500);
+    expect(component.expectedValue).toBe(7000000);
+  }));
 });
